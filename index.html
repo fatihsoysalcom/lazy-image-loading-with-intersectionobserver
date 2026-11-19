@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lazy Loading Example</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+        .product {
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+            padding: 15px;
+            text-align: center;
+            min-height: 200px; /* To ensure scrolling is needed */
+        }
+        .product img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 10px auto;
+        }
+        .placeholder {
+            background-color: #eee;
+            width: 200px;
+            height: 150px;
+            margin: 10px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Ürünlerimiz</h1>
+
+    <div class="product">
+        <h2>Ürün 1</h2>
+        <p>Bu, ilk görünen ürünümüzdür. Görseli hemen yüklenecektir.</p>
+        <img src="https://via.placeholder.com/200x150/FF0000/FFFFFF?text=Product+1" alt="Ürün 1">
+    </div>
+
+    <p>Aşağı kaydırarak diğer ürünleri keşfedin...</p>
+
+    <div class="product">
+        <h2>Ürün 2</h2>
+        <p>Bu ürünün görseli, siz sayfayı kaydırdıkça yüklenecektir.</p>
+        <img class="lazy" data-src="https://via.placeholder.com/200x150/00FF00/FFFFFF?text=Product+2" alt="Ürün 2">
+    </div>
+
+    <div class="product">
+        <h2>Ürün 3</h2>
+        <p>Bu ürünün görseli de lazy-loading ile yüklenecektir.</p>
+        <img class="lazy" data-src="https://via.placeholder.com/200x150/0000FF/FFFFFF?text=Product+3" alt="Ürün 3">
+    </div>
+
+    <div class="product">
+        <h2>Ürün 4</h2>
+        <p>Daha fazla ürün...</p>
+        <img class="lazy" data-src="https://via.placeholder.com/200x150/FFFF00/000000?text=Product+4" alt="Ürün 4">
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Select all images with the 'lazy' class and a 'data-src' attribute
+            var lazyImages = [].slice.call(document.querySelectorAll("img.lazy[data-src]"));
+
+            // Check if IntersectionObserver is supported by the browser
+            if ("IntersectionObserver" in window) {
+                // Create a new IntersectionObserver
+                let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
+                    entries.forEach(function(entry) {
+                        // If the image is in the viewport (isIntersecting)
+                        if (entry.isIntersecting) {
+                            let lazyImage = entry.target;
+                            // Set the actual src attribute from data-src
+                            lazyImage.src = lazyImage.dataset.src;
+                            // Remove the data-src attribute to prevent re-processing
+                            lazyImage.removeAttribute("data-src");
+                            // Stop observing this image as it's now loaded
+                            lazyImageObserver.unobserve(lazyImage);
+                        }
+                    });
+                });
+
+                // Observe each lazy image
+                lazyImages.forEach(function(lazyImage) {
+                    lazyImageObserver.observe(lazyImage);
+                });
+            } else {
+                // Fallback for browsers that don't support IntersectionObserver
+                // This simple fallback loads all images immediately, not ideal for performance
+                // A more robust fallback would involve scroll event listeners and checking offsets
+                function loadImages() {
+                    lazyImages.forEach(function(lazyImage) {
+                        lazyImage.src = lazyImage.dataset.src;
+                        lazyImage.removeAttribute("data-src");
+                    });
+                }
+                loadImages(); // Load all images if IntersectionObserver is not available
+            }
+        });
+    </script>
+
+</body>
+</html>
